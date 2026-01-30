@@ -2,7 +2,7 @@ class Variable:
     __slots__ = ("name")
     def __setattr__(self, name, value):
         if hasattr(self, name):
-            raise AttributeError("Fraction is immutable")
+            raise AttributeError("Variable is immutable")
         super().__setattr__(name, value)
 
     def __init__(self, name):
