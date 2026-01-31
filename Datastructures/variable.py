@@ -8,6 +8,9 @@ class Variable:
     def __init__(self, name):
         self.name = name
 
+    def isConstant(self):
+        return False
+
     def __str__(self):
         return self.name
     

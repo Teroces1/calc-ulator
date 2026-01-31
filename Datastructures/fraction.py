@@ -20,6 +20,9 @@ class Fraction:
         self.num = numerator
         self.den = denominator
 
+    
+    def isConstant(self):
+        return True
 
     # def simplify(self):
     #     if self.den < 0:
