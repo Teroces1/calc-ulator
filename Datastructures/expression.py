@@ -14,6 +14,7 @@ class Expression:
         self.const = const
         self.terms = terms
 
+    # takes a list of terms, containing a mix of constants and non-constants
     def _sortTerms(self, oldterms):
         consts = []
         terms = []
