@@ -1,5 +1,9 @@
 from Datastructures.fraction import Fraction
 
+# each datastructure *MUST* have
+#   simplified() -> returns simplified copy factor first
+#   rewrite(rule) -> returns a copy with the given rule applied. if the rule cant be applied, returns as is
+#   isConstant() -> returns if the expression is of constant value
 
 class Expression:
     __slots__ = ("const", "terms")
@@ -29,13 +33,23 @@ class Expression:
         return consts, terms
     
     def _foldConsts(self, consts):
-        pass
+        for i in range(len(consts)):
+            consts[i] = consts[i].rewrite("forms/factorfirst")
+        
+        fractions = []
+        complexTerms = []
+
+        for v in consts
             
 
     def simplified(self):
-        oldterms = []
+        # first simplify all children
+        oldtermsI = []
         for v in self.terms:
-            oldterms.append(v.simplified())
+            oldtermsI.append(v.simplified())
+        
+        oldterms2 = []
+        for v in oldterms do
             
         # simplification logic here
         #
