@@ -1,0 +1,36 @@
+[33m15e9b66[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Merge branch 'main' of https://github.com/Teroces1/calc-ulator
+[33m955472f[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #1 from Teroces1/feature/expression_parser
+[33m373f100[m[33m ([m[1;31morigin/feature/expression_parser[m[33m, [m[1;32mfeature/expression_parser[m[33m)[m Started working on expression parser 2
+Parser/parser.py
+[33md666230[m Started working on expression parser
+Parser/parser.py
+Parser/tokens.py
+[33m400ee2d[m Reorganized file structure
+Datastructures/fraction.py
+Datastructures/variable.py
+other/fraction.cpp
+[33m2d1c08a[m Created variable.py
+variable.py
+[33me7a6068[m Created variable.py
+variable.py
+[33m0d88195[m Added Project Plan
+ProjectPlan.md
+fraction.cpp
+fraction.py
+[33mfc345d9[m a
+fraction.py
+[33md0c4f25[m o2k
+fraction.py
+[33ma40e987[m ok
+fraction.py
+[33me88ccf0[m Merge branch 'main' of github.com:Teroces1/calc-ulator Merging the empty repository with the 2 scripts I already made locally
+[33m59ff47a[m Initial commit
+fraction.cpp
+fraction.py
+[33m6e45d06[m Delete README.md
+README.md
+[33m712e03b[m Delete LICENSE
+LICENSE
+[33m1e5d196[m Initial commit
+LICENSE
+README.md
