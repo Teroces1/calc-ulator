@@ -46,10 +46,13 @@ class Expression:
         # first simplify all children
         oldtermsI = []
         for v in self.terms:
-            oldtermsI.append(v.simplified())
+
+            oldtermsI.append(v.simplified(""))
         
-        oldterms2 = []
-        for v in oldterms do
+        oldtermsJ = []
+        for v in oldtermsI:
+            if isinstance(v, Expression):
+                for j in
             
         # simplification logic here
         #
