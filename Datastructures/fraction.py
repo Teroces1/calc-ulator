@@ -1,4 +1,5 @@
 import math
+from Datastructures.forms import SortOrder
 
 class Fraction:
     __slots__ = ("num", "den")
@@ -45,6 +46,9 @@ class Fraction:
         n //= f
         d //= f
         return Fraction(n, d)
+    
+    def getSortOrder(self):
+        return (SortOrder.Number, self)
     
     def copy(self):
         return Fraction(self.num, self.den)

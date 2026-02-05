@@ -1,38 +1,78 @@
 from Datastructures.fraction import Fraction
-from Datastructures.forms import ExpressionForm, TermForm, Form, CanonicalForm
+from Datastructures.forms import ExpressionForm, TermForm, Form, CanonicalForm, SortOrder
 # each datastructure *MUST* have
 #   simplified() -> returns simplified copy factor first
 #   rewrite(rule) -> returns a copy with the given rule applied. if the rule cant be applied, returns as is
 #   isConstant() -> returns if the expression is of constant value
 
-class Negate:
-    __slots__ = ("expr")
-    def __setattr__(self, name, value):
-        if hasattr(self, name):
-            raise AttributeError("Variable is immutable")
-        super().__setattr__(name, value)
+
+# class Negate:
+#     __slots__ = ("expr")
+#     def __setattr__(self, name, value):
+#         if hasattr(self, name):
+#             raise AttributeError("Negate is immutable")
+#         super().__setattr__(name, value)
 
 
 
-    def __init__(self, expr):
-        self.expr = expr
+#     def __init__(self, expr):
+#         self.expr = expr
 
-    def simplified(self, resultform: ExpressionForm = CanonicalForm):
-        expr = self.expr.simplified()
+#     def simplified(self, resultform: ExpressionForm = CanonicalForm):
+#         expr = self.expr.simplified()
 
-        if isinstance(expr, Negate):
-            return expr.expr
+#         if isinstance(expr, Negate):
+#             return expr.expr
         
-        if isinstance(expr, Expression) and resultform.expressionForm == ExpressionForm.DISTRIBUTED:
-            for v in expr.terms:
-                
+#         if isinstance(expr, Expression) and resultform.expressionForm == ExpressionForm.DISTRIBUTED:
+#             newTerms = []
+#             for v in expr.terms:
+#                 newTerms.append(Negate(v))
+            
+#             return Expression(Negate(expr.const), newTerms).simplified(resultform)
 
-        return Negate(expr)
+#         return Negate(expr)
+
+# class Inverse:
+#     __slots__ = ("expr")
+#     def __setattr__(self, name, value):
+#         if hasattr(self, name):
+#             raise AttributeError("Inverse is immutable")
+#         super().__setattr__(name, value)
+
+
+#     def __init__(self, expr):
+#         self.expr = expr
+
+#     def simplified(self, resultform: ExpressionForm = CanonicalForm):
+#         expr = self.expr.simplified()
+
+#         if isinstance(expr, Inverse):
+#             return expr.expr
+#         if isinstance(expr, Negate):
+#             if isinstance(expr.expr, Inverse):
+#                 return Negate(expr.expr.expr)
+#             return Negate(Inverse(expr.expr))   # negate always goes on outside
+        
+#         if isinstance(expr, Term) and resultform.termForm == TermForm.SPLIT_POWERS:
+#             newFactors = []
+#             for v in expr.factors:
+#                 newFactors.append(Inverse(v))
+            
+#             return Term(Inverse(expr.coef), newFactors).simplified(resultform)
+        
+#         if isinstance(expr, Power):
+#             return Power(expr.base, Negate(expr.Power))
+
+#         return Inverse(expr)
+
+
+
 
 
 
 class Expression:
-    __slots__ = ("const", "terms")
+    __slots__ = ("consts", "terms")
     def __setattr__(self, name, value):
         if hasattr(self, name):
             raise AttributeError("Variable is immutable")
@@ -40,8 +80,8 @@ class Expression:
 
 
 
-    def __init__(self, const, terms):
-        self.const = const
+    def __init__(self, consts, terms):
+        self.consts = consts
         self.terms = terms
 
     # takes a list of terms, containing a mix of constants and non-constants
@@ -61,11 +101,23 @@ class Expression:
     # takes a list of terms, and tries to elimate any cases of [x + (-x)]
     def _removePairs(self, terms):
         i = 0
+        inverses = []
+        for v in terms:
+            inverses.append(Term(Fraction(-1), v).simplified())
         new = []
+        i = 0
         while i < len(terms):
             for j in range(i+1, len(terms)):
-
-    
+                if terms[i] == inverses[j]:
+                    del terms[i]
+                    del inverses[j]
+                    break
+            else:
+                i += 1
+        
+        return terms
+                
+    # MAIN METHOD for folding all constants. tries to simplify as much as possible, keeping the result in distributed form.
     def _foldConsts(self, consts):
         for i in range(len(consts)):
             consts[i] = consts[i].rewrite(ExpressionForm.Factored)
@@ -78,11 +130,14 @@ class Expression:
 
     def simplified(self, resultform: ExpressionForm = CanonicalForm):
         # first simplify all children
-        oldtermsI = [self.const]
+        oldtermsI = []
+        for v in self.consts:
+
         for v in self.terms:
             res = v.simplified(ExpressionForm.Distributed)
             if isinstance(res, Expression):
-                oldtermsI.append(res.const)
+                for j in res.consts:
+                    oldtermsI.append(j)
                 for j in res.terms:
                     oldtermsI.append(j)
             else:
@@ -114,6 +169,8 @@ class Expression:
         
         return True
 
+    def getSortValue(self):
+        return (SortOrder.Expression, self.__str__())
 
     def __str__(self):
         s = ""
@@ -124,4 +181,10 @@ class Expression:
         return s
     
     def __repr__(self):
-        return f"Expression({repr(self.const)}, [{", ".join((repr(v) for v in self.terms))}])"
+        return f"Expression({", ".join((repr(v) for v in self.consts))}, [{", ".join((repr(v) for v in self.terms))}])"
+
+class Term:
+    pass
+
+class Power:
+    pass

@@ -1,4 +1,4 @@
-class Variable:
+class Symbol:
     __slots__ = ("name")
     def __setattr__(self, name, value):
         if hasattr(self, name):
