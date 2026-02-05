@@ -59,7 +59,7 @@ from Datastructures.forms import ExpressionForm, TermForm, Form, CanonicalForm, 
 #             for v in expr.factors:
 #                 newFactors.append(Inverse(v))
             
-#             return Term(Inverse(expr.coef), newFactors).simplified(resultform)
+#             return Term(Inverse(expr.coefs), newFactors).simplified(resultform)
         
 #         if isinstance(expr, Power):
 #             return Power(expr.base, Negate(expr.Power))
@@ -119,20 +119,38 @@ class Expression:
                 
     # MAIN METHOD for folding all constants. tries to simplify as much as possible, keeping the result in distributed form.
     def _foldConsts(self, consts):
-        for i in range(len(consts)):
-            consts[i] = consts[i].rewrite(ExpressionForm.Factored)
         
-        fractions = []
+        fractionalConst = Fraction(0)
         complexTerms = []
 
-        for v in consts
-            
+        for v in consts:
+            if isinstance(v, Fraction):
+                fractionalConst += v
+            else:
+                complexTerms.append(v)
+        
+        # now, it will factor the result
+        factors = []
+        
+        for i in range(len(complexTerms)):
+            complexTerms[i] = complexTerms[i].rewrite(ExpressionForm.Factored)
+            if isinstance(complexTerms[i], Term):
+                factors[i] = complexTerms[i].factors + complexTerms[i].coefs
+
+
 
     def simplified(self, resultform: ExpressionForm = CanonicalForm):
         # first simplify all children
         oldtermsI = []
         for v in self.consts:
-
+            res = v.simplified(ExpressionForm.Distributed)
+            if isinstance(res, Expression):
+                for j in res.consts:
+                    oldtermsI.append(j)
+                for j in res.terms:
+                    oldtermsI.append(j)
+            else:
+                oldtermsI.append(res)
         for v in self.terms:
             res = v.simplified(ExpressionForm.Distributed)
             if isinstance(res, Expression):
@@ -143,7 +161,7 @@ class Expression:
             else:
                 oldtermsI.append(res)
         
-        newConsts, newTerms = self._sortTerms()
+        newConsts, newTerms = self._sortTerms(oldtermsI)
             
         # simplification logic here
         #
