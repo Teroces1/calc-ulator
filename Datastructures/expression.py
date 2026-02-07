@@ -75,7 +75,7 @@ class Expression:
     __slots__ = ("consts", "terms")
     def __setattr__(self, name, value):
         if hasattr(self, name):
-            raise AttributeError("Variable is immutable")
+            raise AttributeError("Expression is immutable")
         super().__setattr__(name, value)
 
 
@@ -135,7 +135,19 @@ class Expression:
         for i in range(len(complexTerms)):
             complexTerms[i] = complexTerms[i].rewrite(ExpressionForm.Factored)
             if isinstance(complexTerms[i], Term):
-                factors[i] = complexTerms[i].factors + complexTerms[i].coefs
+                factors[i] = sorted(complexTerms[i].factors + complexTerms[i].coefs, key = lambda expr: expr.getSortOrder())
+            else:
+                factors[i] = complexTerms[i]
+        
+
+
+        for _ in range(1000): # replace with while True later        
+            for i, exp in enumerate(factors):
+                for j in range(i+1, len(factors)):
+                    
+        else:
+            print("uh ohhhh, this wasnt supposed to happen!!! >:D")
+
 
 
 
@@ -187,7 +199,7 @@ class Expression:
         
         return True
 
-    def getSortValue(self):
+    def getSortOrder(self):
         return (SortOrder.Expression, self.__str__())
 
     def __str__(self):
