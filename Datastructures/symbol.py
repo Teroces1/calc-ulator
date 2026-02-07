@@ -1,3 +1,5 @@
+from Datastructures.forms import SortOrder
+
 class Symbol:
     __slots__ = ("name")
     def __setattr__(self, name, value):
@@ -10,6 +12,9 @@ class Symbol:
 
     def isConstant(self):
         return False
+    
+    def getSortOrder(self):
+        return (SortOrder.Symbol, self.name)
 
     def __str__(self):
         return self.name
