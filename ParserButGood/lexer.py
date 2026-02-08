@@ -47,5 +47,7 @@ class Lexer:
             return Token("NUMBER", string+"."+decimal)
         else:
             return Token("NUMBER", string)
-    def identifier
-            
+    def identifier(self):
+        string=""
+        while self.current_char() is not None:
+            ch=self.current_char()
