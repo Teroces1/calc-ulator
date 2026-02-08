@@ -10,6 +10,8 @@ class Fraction:
 
 
     def __init__(self, numerator=0, denominator=1):
+        numerator = int(numerator)
+        denominator = int(denominator)
         if denominator < 0:
             numerator = -numerator
             denominator = -denominator
@@ -37,6 +39,8 @@ class Fraction:
     #     return self
 
     def simplified(self):
+        return self # will already be simplified
+    
         n, d = self.num, self.den
         if d < 0:
             n = -n

@@ -15,6 +15,14 @@ class Symbol:
     
     def getSortOrder(self):
         return (SortOrder.Symbol, self.name)
+    
+    def simplified(self):
+        return self
+    
+    def __eq__(self, other):
+        if isinstance(other, Symbol):
+            return self.name == other.name
+        return False
 
     def __str__(self):
         return self.name
