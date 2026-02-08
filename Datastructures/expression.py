@@ -135,15 +135,16 @@ class Expression:
         for i in range(len(complexTerms)):
             complexTerms[i] = complexTerms[i].rewrite(ExpressionForm.Factored)
             if isinstance(complexTerms[i], Term):
-                factors[i] = sorted(complexTerms[i].factors + complexTerms[i].coefs, key = lambda expr: expr.getSortOrder())
+                factors.append(sorted(complexTerms[i].factors + complexTerms[i].coefs, key = lambda expr: expr.getSortOrder()))
             else:
-                factors[i] = complexTerms[i]
+                factors.append([complexTerms[i]])
         
 
 
         for _ in range(1000): # replace with while True later        
             for i, exp in enumerate(factors):
                 for j in range(i+1, len(factors)):
+                    
                     
         else:
             print("uh ohhhh, this wasnt supposed to happen!!! >:D")
