@@ -18,7 +18,7 @@ class Parser:
             return self.PRECEDENCE.get(token.value, -1)
     def left_association(self, token):
         if isinstance(token, Token):
-            if token.value == "^":
+            if token.value != "^":
                 return True
             return False
     def shunting_yard(self):
@@ -29,6 +29,7 @@ class Parser:
                 self.output_queue.append(token)
             elif token.type =="FUNCTION":
                 self.operator_stack.append(token)
+                
                 #todo parentheses logic
             elif token.type == "COMMA": 
                 # Pop until we find a left parenthesis 
@@ -38,14 +39,23 @@ class Parser:
                     if not self.operator_stack: 
                         raise ValueError("Misplaced comma or missing left parenthesis")
             elif token.type=="OPERATOR":
+                while (self.operator_stack and self.operator_stack[-1].type=="OPERATOR" and
+                       (
+                           (self.left_association(token) and 
+                            self.precedence(token) <=self.precedence(self.operator_stack[-1]))
+                            or 
+                            (not self.left_association(token) and
+                             self.precedence(token) <self.precedence(self.operator_stack[-1]))
+                       )):
+                    self.output_queue.append(self.operator_stack.pop())
                 self.operator_stack.append(token)
-                #Find precedence level of prev and current token
-                if self.precedence(token) < self.precedence(self.operator_stack[len(self.operator_stack)-1]):
-                    self.operator_stack.pop()
-                    #change
-
-                elif self.precedence(token) == self.precedence(self.operator_stack[len(self.operator_stack)-1]) and self.left_association(token): #check equality of precedence and left association
-                    self.operator_stack.pop()
-                else:
-                    #end loop
-                    return
+            elif token.type=="LPAREN":
+                self.operator_stack.append(token)
+            elif token.type=="RPAREN":
+                while True:
+                    if not self.operator_stack:
+                        raise ValueError('Missing left parenthesis')
+                    if self.operator_stack[-1].type =="LPAREN":
+                        self.operator_stack.pop()
+                        break
+                self.output_queue.append(self.operator_stack.pop())
