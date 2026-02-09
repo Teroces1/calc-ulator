@@ -1,7 +1,7 @@
 #Here the tokenizer will split the string into the stuff, like FUNCTION, OPERATOR, NUMBER etc.
 FUNCTIONS={"sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"}
 CONSTANTS={"pi", "e"}
-from ParserButGood.token import Token
+from token import Token
 class Lexer:
     def __init__(self, text):
         self.text=text
@@ -20,7 +20,7 @@ class Lexer:
         else:
             return self.text[self.pos+1]
     def skip_whitespace(self):
-        while self.text[self.pos]==" ":
+        while self.current_char()==" ":
             self.advance()
     def number(self):
         string = ""
@@ -40,6 +40,8 @@ class Lexer:
                 decimal +=ch
                 self.advance()
                 continue
+            if dotCount>1:
+                self.error("Ill formed number")
             break
         if dotCount==1:
             if string=="":
@@ -49,5 +51,50 @@ class Lexer:
             return Token("NUMBER", string)
     def identifier(self):
         string=""
+        ch=self.current_char()
+        if not ch.isalpha():
+            self.error("First char has to be a letter")
+        string+=ch
+        self.advance()
+        while self.current_char() is not None and self.current_char().isalnum():
+            ch=self.current_char()
+            string+=ch
+            self.advance()
+        if string in FUNCTIONS:
+            return Token("FUNCTION", string)
+        elif string in CONSTANTS:
+            return Token("CONSTANT", string)
+        else:
+            return Token("VARIABLE", string)
+    def error(self, message):
+        raise Exception(f"Lexer error ar position {self.pos}: {message}")
+    def get_next_token(self):
         while self.current_char() is not None:
             ch=self.current_char()
+            self.skip_whitespace()
+            if ch.isdigit() or ch==".":
+                return self.number()
+            if ch.isalpha():
+                return self.identifier()
+            if ch in "*/+-^":
+                self.advance()
+                return Token("OPERATOR", ch)
+            if ch=="(":
+                self.advance()
+                return Token("LPAREN", ch)
+            if ch==")":
+                self.advance()
+                return Token("RPAREN", ch)
+            if ch==",":
+                self.advance()
+                return Token("COMMA", ch)
+            self.error(f"Uknown character: {ch}")
+        return Token("EOF", "")
+    def tokenize(self):
+        tokens=[]
+        while True:
+            tok=self.get_next_token()
+            tokens.append(tok)
+            if tok.type=="EOF": # End of File token
+                break
+        return tokens
