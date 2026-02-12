@@ -1,5 +1,19 @@
 #Shunting Yard parser
 from ParserButGood.token import Token 
+
+class Expression:
+    def __init__(self, constTerms: list, nonconstTerms: list):
+        pass
+class Term:
+    def __init__(self, constTerms: list, nonconstTerms: list):
+        pass
+class Power:
+    def __init__(self, base, exp):
+        pass
+
+
+
+
 # infix to postfix -> 3 + 4 * 2 => 3 4 2 + *
 class Parser:
     PRECEDENCE = {
@@ -9,6 +23,7 @@ class Parser:
             '/':3,
             '^':4
         }
+    CONSTANTS= ['e', 'pi']
     def __init__(self, tokens):
         self.tokens=tokens
         self.operator_stack=[]
@@ -21,16 +36,26 @@ class Parser:
             if token.value != "^":
                 return True
             return False
+    def peek(self, i):
+        return self.tokens[i+1]
     def shunting_yard(self):
-        for token in self.tokens:
+        for i, token in enumerate(self.tokens):
             if not isinstance(token, Token):
                 continue
             if token.type == "NUMBER":
                 self.output_queue.append(token)
-            elif token.type =="FUNCTION":
-                self.operator_stack.append(token)
-                
-                #todo parentheses logic
+            elif token.type =="IDENTIFIER":
+                nextTok=self.peek(i)
+                if nextTok and nextTok.type=="LPAREN":
+                    token.type="FUNCTION"
+                    self.operator_stack.append(token)
+                else: 
+                    if token.value in self.CONSTANTS:
+                        token.type="CONSTANT"
+                        self.output_queue.append(token)
+                    else: 
+                        token.type="VARIABLE"
+                        self.output_queue.append(token)
             elif token.type == "COMMA": 
                 # Pop until we find a left parenthesis 
                 while self.operator_stack and self.operator_stack[-1].type != "LPAREN": 
@@ -58,4 +83,5 @@ class Parser:
                     if self.operator_stack[-1].type =="LPAREN":
                         self.operator_stack.pop()
                         break
+
                 self.output_queue.append(self.operator_stack.pop())
