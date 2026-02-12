@@ -59,7 +59,8 @@ class Parser:
     def __init__(self, tokens):
         self.tokens=tokens
         self.pos=0
-        self.current_token=''
+        self.current_token=tokens[self.pos]
+        self.terms=[]
     def precedence(self, token):
         if isinstance(token, Token):
             return self.PRECEDENCE.get(token.value, -1)
@@ -72,12 +73,21 @@ class Parser:
         return self.tokens[i+1]
     def advance(self):
         self.pos+=1
+        self.current_token=self.tokens[self.pos]
     def parse_expression(self):
-        
+        constants=[]
+        terms=[]
+        token=self.current_token()
+        while token.value== "+" or token.value=="-":
+            left=self.token
 
         #should return expression object
     def parse_term(self):
-        pass
+        ch=self.current_token
+        string=""
+        while ch.value  != "EOF":
+            while ch.value != "*" or ch.value != "/" or ch.value != ")":
+
     def parse_power(self):
         pass
     def parse_factor(self):
