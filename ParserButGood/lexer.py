@@ -60,13 +60,6 @@ class Lexer:
             ch=self.current_char()
             string+=ch
             self.advance()
-            #TODO change it so that lexer doesn't decide whether that's a function or variable
-        #if string in FUNCTIONS:
-        #    return Token("FUNCTION", string)
-        #elif string in CONSTANTS:
-        #    return Token("CONSTANT", string)
-        #else:
-        #    return Token("VARIABLE", string)
         return Token("IDENTIFIER", string)
     def error(self, message):
         raise Exception(f"Lexer error ar position {self.pos}: {message}")
@@ -90,6 +83,9 @@ class Lexer:
             if ch==",":
                 self.advance()
                 return Token("COMMA", ch)
+            if ch=="_":
+                self.advance()
+                return Token("UNDERSCORE", ch)
             self.error(f"Uknown character: {ch}")
         return Token("EOF", "")
     def tokenize(self):

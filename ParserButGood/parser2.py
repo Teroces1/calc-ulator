@@ -10,7 +10,7 @@ class Expression(AlgebraicNode): #Adding
     def __init__(self, consts, terms):
         self.consts = consts   # is a LIST of AlgebraicNodes
         self.terms = terms     # is a LIST of AlgebraicNodes
-
+#Even though terms and consts have different lists, it is implemented in the way that you can just put everything into terms and everything will be sorted out.
 class Term(AlgebraicNode): #Multiplication
     def __init__(self, coefs, factors):
         self.coefs = coefs     # is a LIST of AlgebraicNodes
@@ -69,30 +69,110 @@ class Parser:
             if token.value != "^":
                 return True
             return False
+    def error(self, message):
+        raise ValueError(message)
     def peek(self, i):
         return self.tokens[i+1]
     def advance(self):
         self.pos+=1
         self.current_token=self.tokens[self.pos]
-    def parse_expression(self):
-        constants=[]
-        terms=[]
-        token=self.current_token()
-        while token.value== "+" or token.value=="-":
-            left=self.token
-
-        #should return expression object
-    def parse_term(self):
-        ch=self.current_token
-        string=""
-        while ch.value  != "EOF":
-            while ch.value != "*" or ch.value != "/" or ch.value != ")":
-
-    def parse_power(self):
-        pass
-    def parse_factor(self):
-        pass
+    def is_multiplication_context(self):
+        if self.current_token.value in ('*', '/'):
+            return True
         
+        prev=self.tokens[self.pos-1] if self.pos >0 else None
+        curr=self.current_token
+        if prev and curr:
+            if (
+                prev.type=="NUMBER" and curr.type in ("IDENTIFIER", "LPAREN") or
+                prev.type=="IDENTIFIER" and curr.type in ("IDENTIFIER", "LPAREN") or
+                prev.type=="RPAREN" and curr.type in ("IDENTIFIER", "LPAREN", "NUMBER")
+                ):
+                return True
+        return False
+    def is_function(self):
+        return (
+            self.current_token.type=="IDENTIFIER" and
+            self.pos+1<len(self.tokens) and 
+            self.tokens[self.pos+1].type=='LPAREN' and 
+            self.current_token.value in self.FUNCTIONS
+        )
+    
+    #Start from here
+    def parse_expression(self):
+        left=[self.parse_term()]
+        while self.current_token.value in ('+', '-'):
+            op=self.current_token.value
+            self.advance()
+            right=self.parse_term()
+            if op=="-":
+                left.append(Term([Fraction(-1)],[right])) #Terms can be nested inside of each other, so its fine
+            else:
+                left.append(right)
+        if len(left)==1:
+            return left[0]
+        return Expression([], left) #it is fine that const arr is empty, as it will be sorted out further
+    
+    #Parses terms(multiplication, division, even implicit)
+    def parse_term(self):
+        left=self.parse_power()
+        factors=[left]
+        while self.is_multiplication_context():
+            op=self.current_token
+            if op in ('*', '/'):
+                self.advance()
+            right=self.parse_power()
+            factors.append(right)
+        return Term([],factors) 
+    def parse_power(self):
+        base=self.parse_primary()
+        while self.pos+1<len(self.tokens) and self.tokens[self.pos+1].value=="^":
+            self.advance()
+            self.advance()
+            exp=self.parse_power()
+            base=Power(base, exp)
+        return base
+    
+    #The lowest level of parsing
+    def parse_primary(self):
+        if self.current_token.type=="NUMBER":
+            node=Fraction(self.current_token.value)
+            self.advance()
+            return node
+        if self.current_token.type=="IDENTIFIER":
+            name=self.current_token.value
+            if self.current_token.value in self.CONSTANTS:
+                node=Symbol(self.current_token.value)
+                self.advance()
+                return node
+            if self.is_function():
+                self.advance()
+                self.advance()
+                args=[self.parse_expression()]
+                while self.current_token.type=="COMMA":
+                    self.advance()
+                    args.append(self.parse_expression())
+                if self.current_token.type!="RPAREN":
+                    self.error("Expected ')' after func args")
+                self.advance()
+                return FunctionCall(name, args)
+            else: 
+                self.advance()
+                return Symbol(name)
+        if self.current_token.type=="LPAREN" and self.pos+1<len(self.tokens):
+            self.advance()
+            node=self.parse_expression()
+            if self.current_token.type!="RPAREN":
+                self.error("Expected ')' after '('")
+            self.advance()
+            return node
+        if self.current_token.value=="-":
+            self.advance()
+            node = self.parse_primary()
+            return Term([Fraction(-1)], [node])
+        self.error(f"Couldn't parse token {self.current_token} on a simplest level")
+
+    # The
     def parse(self): #recursive descent parser
         node = self.parse_expression()
         if self.current_token.type == "EOF":
