@@ -86,7 +86,7 @@ class Lexer:
             if ch=="_":
                 self.advance()
                 return Token("UNDERSCORE", ch)
-            self.error(f"Uknown character: {ch}")
+            self.error(f"Unknown character: {ch}")
         return Token("EOF", "")
     def tokenize(self):
         tokens=[]

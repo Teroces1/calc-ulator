@@ -1,48 +1,6 @@
 #Recursive descent parser
-from ParserButGood.token import Token 
-
-class AlgebraicNode:
-    pass  # added this, but i wont actually be implementing this
-    
-
-# these 3 are the main operations
-class Expression(AlgebraicNode): #Adding
-    def __init__(self, consts, terms):
-        self.consts = consts   # is a LIST of AlgebraicNodes
-        self.terms = terms     # is a LIST of AlgebraicNodes
-#Even though terms and consts have different lists, it is implemented in the way that you can just put everything into terms and everything will be sorted out.
-class Term(AlgebraicNode): #Multiplication
-    def __init__(self, coefs, factors):
-        self.coefs = coefs     # is a LIST of AlgebraicNodes
-        self.factors = factors # is a LIST of AlgebraicNodes
-
-class Power(AlgebraicNode):
-    def __init__(self, base, exp):
-        self.base = base       # is a SINGLE AlgebraicNode
-        self.exp = exp         # is a SINGLE AlgebraicNode
-
-
-
-# this will be used for sin, cos, ln, etc.
-class FunctionCall(AlgebraicNode):
-    def __init__(self, func, args):
-        self.func = func       # will be a string like "sin" or "ln". can also be custom functions like "f" or "f_1"
-        self.args = args       # is a LIST of AlgebraicNodes
-
-
-
-
-# the 2 types of base types
-class Symbol(AlgebraicNode):  # for variables
-    def __init__(self, name):
-        self.name = name       # will be a string storing the variables name
-
-class Fraction(AlgebraicNode):
-    def __init__(self, numerator, denominator=1):
-        self.num = numerator
-        self.den = denominator
-
-
+from token import Token 
+from ghost_classes import AlgebraicNode, Expression,  Term, Power, FunctionCall, Symbol, Fraction
 
 # Example: in (x-3)/2, the object that containts every other object would be Term
 # 2(x+3)+1, the ojbect that containts everything else would be Expression, creating Abstract syntax tree
@@ -76,19 +34,23 @@ class Parser:
     def advance(self):
         self.pos+=1
         self.current_token=self.tokens[self.pos]
-    def is_multiplication_context(self):
+    def is_explicit(self):
         if self.current_token.value in ('*', '/'):
             return True
-        
-        prev=self.tokens[self.pos-1] if self.pos >0 else None
+        return False
+    def is_implicit(self):
+        if self.pos==0:
+            return False
+        prev=self.tokens[self.pos-1]
         curr=self.current_token
-        if prev and curr:
-            if (
-                prev.type=="NUMBER" and curr.type in ("IDENTIFIER", "LPAREN") or
-                prev.type=="IDENTIFIER" and curr.type in ("IDENTIFIER", "LPAREN") or
-                prev.type=="RPAREN" and curr.type in ("IDENTIFIER", "LPAREN", "NUMBER")
-                ):
-                return True
+        if curr.type=="IDENTIFIER" and self.is_function():
+            return prev.type in ("NUMBER", "IDENTIFIER", "RPAREN")
+        if (
+            prev.type=="NUMBER" and curr.type in ("IDENTIFIER", "LPAREN") or
+            prev.type=="IDENTIFIER" and curr.type in ("IDENTIFIER", "LPAREN") or
+            prev.type=="RPAREN" and curr.type in ("IDENTIFIER", "LPAREN", "NUMBER")
+            ):
+            return True
         return False
     def is_function(self):
         return (
@@ -117,13 +79,19 @@ class Parser:
     def parse_term(self):
         left=self.parse_power()
         factors=[left]
-        while self.is_multiplication_context():
-            op=self.current_token
-            if op in ('*', '/'):
+        while True:
+            explicit=self.is_explicit()
+            implicit=self.is_implicit()
+            if explicit:
                 self.advance()
+            elif implicit:
+                pass
+            else: break
             right=self.parse_power()
             factors.append(right)
         return Term([],factors) 
+    
+    #Parses powers and exponents
     def parse_power(self):
         base=self.parse_primary()
         while self.pos+1<len(self.tokens) and self.tokens[self.pos+1].value=="^":
@@ -175,7 +143,7 @@ class Parser:
     # The
     def parse(self): #recursive descent parser
         node = self.parse_expression()
-        if self.current_token.type == "EOF":
-            raise ValueError("Error")
+        if self.current_token.type != "EOF":
+            raise ValueError("Unexpected token after expression ended")
         return node
 

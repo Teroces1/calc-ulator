@@ -10,16 +10,21 @@ class Expression(AlgebraicNode): #Adding
     def __init__(self, consts, terms):
         self.consts = consts   # is a LIST of AlgebraicNodes
         self.terms = terms     # is a LIST of AlgebraicNodes
-
+    def __repr__(self):
+        return f"Expression({self.consts}, {self.terms})"
 class Term(AlgebraicNode): #Multiplication
     def __init__(self, coefs, factors):
         self.coefs = coefs     # is a LIST of AlgebraicNodes
         self.factors = factors # is a LIST of AlgebraicNodes
+    def __repr__(self):
+        return f"Term({self.coefs}, {self.factors})"
 
 class Power(AlgebraicNode):
     def __init__(self, base, exp):
         self.base = base       # is a SINGLE AlgebraicNode
         self.exp = exp         # is a SINGLE AlgebraicNode
+    def __repr__(self):
+        return f"Power({self.base}, {self.exp})"
 
 
 
@@ -28,6 +33,8 @@ class FunctionCall(AlgebraicNode):
     def __init__(self, func, args):
         self.func = func       # will be a string like "sin" or "ln". can also be custom functions like "f" or "f_1"
         self.args = args       # is a LIST of AlgebraicNodes
+    def __repr__(self):
+        return f"FunctionCall({self.func}, {self.args})"
 
 
 
@@ -36,11 +43,15 @@ class FunctionCall(AlgebraicNode):
 class Symbol(AlgebraicNode):  # for variables
     def __init__(self, name):
         self.name = name       # will be a string storing the variables name
+    def __repr__(self):
+        return f"Symbol({self.name})"
 
 class Fraction(AlgebraicNode):
     def __init__(self, numerator, denominator=1):
         self.num = numerator
         self.den = denominator
+    def __repr__(self):
+        return f"Fraction({self.num}, {self.den})"
 
 
 
@@ -58,8 +69,6 @@ class Parser:
     CONSTANTS={"pi", "e"}
     def __init__(self, tokens):
         self.tokens=tokens
-        self.operator_stack=[]
-        self.output_queue=[]
     def precedence(self, token):
         if isinstance(token, Token):
             return self.PRECEDENCE.get(token.value, -1)
