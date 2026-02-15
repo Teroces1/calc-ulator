@@ -83,12 +83,18 @@ class Parser:
             explicit=self.is_explicit()
             implicit=self.is_implicit()
             if explicit:
+                oper=self.current_token.value
                 self.advance()
+                right=self.parse_power()
+                if oper=="/":
+                    factors.append(Power(right, Fraction(-1)))
+                else:
+                    factors.append(right)
             elif implicit:
-                pass
-            else: break
-            right=self.parse_power()
-            factors.append(right)
+                right=self.parse_power()
+                factors.append(right)
+            else: 
+                break
         return Term([],factors) 
     
     #Parses powers and exponents
