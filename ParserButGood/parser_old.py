@@ -5,15 +5,8 @@ from ghost_classes import AlgebraicNode, Expression,  Term, Power, FunctionCall,
 # Example: in (x-3)/2, the object that containts every other object would be Term
 # 2(x+3)+1, the ojbect that containts everything else would be Expression, creating Abstract syntax tree
 class Parser:
-    PRECEDENCE = {
-            '+':2,
-            '-':2,
-            '*':3,
-            '/':3,
-            '^':4
-        }
-    FUNCTIONS={"sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"}
-    CONSTANTS={"pi", "e"}
+    FUNCTIONS={"sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp", "arcsin", "arccos", "arctan", "cot", "sec", "csc", "arccot", "actsec", "arccsc"}
+    CONSTANTS={"pi", "e", "i", "ф"}
     def __init__(self, tokens):
         self.tokens=tokens
         self.pos=0
@@ -34,6 +27,11 @@ class Parser:
     def advance(self):
         self.pos+=1
         self.current_token=self.tokens[self.pos]
+    def convNumber(self, numStr):
+        if '.' not in numStr:
+            return Fraction(int(numStr))
+        whole, frac = numStr.split(".")
+        return Expression([], [Fraction(int(whole)),Fraction(int(frac), 10**(len(frac)))])
     def is_explicit(self):
         if self.current_token.value in ('*', '/'):
             return True
@@ -110,7 +108,7 @@ class Parser:
     #The lowest level of parsing
     def parse_primary(self):
         if self.current_token.type=="NUMBER":
-            node=Fraction(self.current_token.value)
+            node=self.convNumber(self.current_token.value)
             self.advance()
             return node
         if self.current_token.type=="IDENTIFIER":
