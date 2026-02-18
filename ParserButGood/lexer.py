@@ -61,6 +61,18 @@ class Lexer:
             string+=ch
             self.advance()
         return Token("IDENTIFIER", string)
+    def comparison(self):
+        string=""
+        ch=self.current_char()
+        if ch not in "<>=":
+            self.error("First char has to be <>=")
+        string+=ch
+        self.advance()
+        while self.current_char() in "<>=":
+            ch=self.current_char()
+            string+=ch
+            self.advance()
+        return Token("COMPARISON", string)
     def error(self, message):
         raise Exception(f"Lexer error ar position {self.pos}: {message}")
     def get_next_token(self):
@@ -86,6 +98,8 @@ class Lexer:
             if ch=="_":
                 self.advance()
                 return Token("UNDERSCORE", ch)
+            if ch in "><=":
+                return self.comparison()
             self.error(f"Unknown character: {ch}")
         return Token("EOF", "")
     def tokenize(self):

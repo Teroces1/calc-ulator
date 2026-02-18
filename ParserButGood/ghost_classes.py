@@ -48,4 +48,9 @@ class Fraction(AlgebraicNode):
     def __repr__(self):
         return f"Fraction({self.num}, {self.den})"
 
-
+class Equation(AlgebraicNode):
+    def __init__(self, expressions, comparisons):
+        self.expr=expressions # arr of expressions
+        self.comp=comparisons # Array with all the comparison signs ex: ['<', '=', '=>']
+    def __repr__(self):
+        return f"Equation({self.expr}, {self.comp})"
