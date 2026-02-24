@@ -100,6 +100,7 @@ class Expression:
         return consts, terms
     
     # takes a list of terms, and tries to elimate any cases of [x + (-x)]
+    # this is prob not useful and will prob delete. combine like terms already takes care of this
     def _removePairs(self, terms):
         i = 0
         inverses = []
@@ -118,17 +119,6 @@ class Expression:
         
         return terms
     
-    # tries to do A + B and returns it. if it fails, it returns None
-    # is able to return a term result, but not an Expression result
-    # TODO: add rules like sin^2 + cos^2 -> 1
-    def _forceAddTerms(self, A, B):
-        if isinstance(A, Fraction) and isinstance(B, Fraction):
-            return A + B
-        
-        if A == B:
-            return Term([Fraction(2)], [A])
-        
-        return None
                 
     # MAIN METHOD for folding all constants. tries to simplify as much as possible, keeping the result in distributed form.
     def _foldConsts(self, consts):
@@ -143,23 +133,45 @@ class Expression:
                 complexTerms.append(v)
         
         # now, it will factor the result
-        factors = []
+        registry = {}   # use a hashmap
         
-        for i in range(len(complexTerms)):
-            # TODO: .rewrite could be removed cause the term cant be an addition expression anyway
-            # and the canonical form already goes factored first for exponents
-            complexTerms[i] = complexTerms[i].rewrite(ExpressionForm.Factored)
-            if isinstance(complexTerms[i], Term):
-                factors.append(sorted(complexTerms[i].factors + complexTerms[i].coefs, key = lambda expr: expr.getSortOrder()))
-            else:
-                factors.append([complexTerms[i]])
-        
-        # now factors should contain a list of lists of factors.
-        # == should be implemented across all data types, so equality can be checked. 
+        for term in complexTerms:
+            if isinstance(term, Term):
+                # the term should already be factored AND sorted from a previous simplification step
+                # all factors should be in term.coefs, since they are all constants
 
-        if fractionalConst == 0:
-            return []
-        return [fractionalConst] # TODO
+                # signature will be the irrational (non Fraction() part)
+                signature = []
+                constant = Fraction(1)
+                for v in term.coefs:
+                    if isinstance(v, Fraction):
+                        constant = rationalPart # there should ONLY BE 1, since term already got simplified so all Fractions were folded into 1
+                    else:
+                        signature.append(v)
+
+                signature = tuple(signature) # packing them into a tuple
+                
+            else:
+                # the term IS NOT a fraction, so it must be an unsimplified Power or FunctionCall or constant Symbol
+                signature = (term,)
+                constant = Fraction(1)
+
+            if signature not in registry:
+                registry[signature] = []
+            
+            registry[signature].append(constant)
+
+        finalTerms = [fractionalConst]
+        for signature, coefsSum in registry.items():
+            # Sum the coefficients: [2, sqrt(5), 3] -> Expression(5 + sqrt(5))
+            new_coef = Expression(coefsSum, []).simplified() # will fold constants in the coef
+            
+            if new_coef == 0: 
+                continue
+
+            finalTerms.append(Term([new_coef], list(signature)).simplified())   # Term.simplified will distribute any unsimplified combine like terms opperation
+
+        return finalTerms
 
     def _combineLikeTerms(self, nonConstTerms):
         registry = {}   # use a hashmap
@@ -194,53 +206,6 @@ class Expression:
         return finalTerms
 
         
-        # # now factors should contain a list of lists of factors.
-        # # == should be implemented across all data types, so equality can be checked. 
-
-        # for _ in range(1000): # replace with while True later        
-        #     # across all the terms...
-        #     foundLikeTerm = False
-        #     for i, term in enumerate(factors):
-        #         # by all the terms again...
-        #         for j in range(i+1, len(factors)):
-        #             uncommonFactors = term.copy()
-        #             uncommonFactors2 = []
-        #             commonFactors = []
-        #             # now for each factor of the 2nd term...
-        #             for factor2 in factors[j]:
-        #                 for _i, testFactor in enumerate(uncommonFactors):
-        #                     if factor2 == testFactor:
-        #                         del uncommonFactors[_i]
-        #                         commonFactors.append(factor2)
-        #                         break
-        #                 else:
-        #                     uncommonFactors2.append(factor2)
-                    
-        #             if len(uncommonFactors) == 0:
-        #                 # 2 copies of a term are being added
-        #                 del factors[j]
-        #                 factors[i] = Term([Fraction(2)], commonFactors).simplified()
-        #                 foundLikeTerm = True
-        #                 break
-                        
-        #             if len(uncommonFactors) == len(uncommonFactors2) == 1:
-        #                 # the terms share common factors, so they could be added potentially
-        #                 res = self._forceAddTerms(uncommonFactors[0], uncommonFactors2[0])
-        #                 if res is not None:
-        #                     del factors[j]
-        #                     factors[i] = Term([], [res] + commonFactors).simplified()
-        #                     foundLikeTerm = True
-        #                     break
-
-
-        #         if foundLikeTerm:
-        #             break
-                        
-                            
-                    
-        # else:
-        #     print("uh ohhhh, this wasnt supposed to happen!!! >:D")
-        
 
 
     def simplified(self, resultform: ExpressionForm = CanonicalForm):
@@ -271,19 +236,36 @@ class Expression:
 
         newTerms = self._combineLikeTerms(newTerms)
 
-        if len(newConsts) == 1 and len(newTerms) == 0:
-            return newConsts[0]
-        elif len(newTerms) == 1 and len(newConsts) == 0:
-            return newConsts[0]
+        # TODO: apply rules like sin^2 + cos^2 = 1 and stuff
+
+        # now that Expression has been flattened, sorted, simplified, and distributed, flatten the result one last time
+        finalConsts = []
+        for v in newConsts:
+            if isinstance(v, Expression):
+                for j in v.consts:
+                    finalConsts.append(j)
+            else:
+                finalConsts.append(v)
+        finalTerms = []
+        for v in newTerms:
+            if isinstance(v, Expression):
+                for j in v.consts:
+                    finalTerms.append(j)
+                for j in v.terms:
+                    finalTerms.append(j)
+            else:
+                finalTerms.append(v)
         
-        return Expression(newConsts, newTerms)
+
+
+        if len(finalConsts) == 1 and len(finalTerms) == 0:
+            return finalConsts[0]
+        elif len(finalTerms) == 1 and len(finalConsts) == 0:
+            return finalTerms[0]
+        
+        return Expression(finalConsts, finalTerms)
+
             
-        # simplification logic here
-        #
-        # ex:
-        # Expression("..a..") + Expression("..b..") - Expression("..a..") -> Variable("..b..")
-        # Variable("a") + Fraction(0) -> Variable("a")
-        # Fraction(5) + Fraction(9) + Fraction(3) -> Fraction(17)
         
 
         
@@ -291,6 +273,7 @@ class Expression:
 
     def rewrite(self, rule):
         # rewrite the expression based on the rule
+        # not sure if this will be needed yet, leaving it unimplemented
         pass
 
 
