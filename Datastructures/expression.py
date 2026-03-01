@@ -82,8 +82,8 @@ class Expression:
 
 
     def __init__(self, consts, terms):
-        self.consts = consts
-        self.terms = terms
+        object.__setattr__(self, 'consts', tuple(consts))
+        object.__setattr__(self, 'terms', tuple(terms))
 
     # takes a list of terms, containing a mix of constants and non-constants
     def _sortTerms(self, oldterms):
@@ -145,7 +145,7 @@ class Expression:
                 constant = Fraction(1)
                 for v in term.coefs:
                     if isinstance(v, Fraction):
-                        constant = rationalPart # there should ONLY BE 1, since term already got simplified so all Fractions were folded into 1
+                        constant = v # there should ONLY BE 1, since term already got simplified so all Fractions were folded into 1
                     else:
                         signature.append(v)
 
@@ -214,19 +214,15 @@ class Expression:
         for v in self.consts:
             res = v.simplified()
             if isinstance(res, Expression):
-                for j in res.consts:
-                    oldtermsI.append(j)
-                for j in res.terms:
-                    oldtermsI.append(j)
+                oldtermsI.extend(res.consts)
+                oldtermsI.extend(res.terms)
             else:
                 oldtermsI.append(res)
         for v in self.terms:
             res = v.simplified()
             if isinstance(res, Expression):
-                for j in res.consts:
-                    oldtermsI.append(j)
-                for j in res.terms:
-                    oldtermsI.append(j)
+                oldtermsI.extend(res.consts)
+                oldtermsI.extend(res.terms)
             else:
                 oldtermsI.append(res)
         
@@ -257,8 +253,9 @@ class Expression:
                 finalTerms.append(v)
         
 
-
-        if len(finalConsts) == 1 and len(finalTerms) == 0:
+        if len(finalConsts) == 0 and len(finalTerms) == 0:
+            return Fraction(0)
+        elif len(finalConsts) == 1 and len(finalTerms) == 0:
             return finalConsts[0]
         elif len(finalTerms) == 1 and len(finalConsts) == 0:
             return finalTerms[0]
@@ -290,13 +287,13 @@ class Expression:
                 self._isConstant = False
                 return False
         
-        self._isConstant = True
+        object.__setattr__(self, "_isConstant", is_const)
         return True
 
     def getSortOrder(self):
         if hasattr(self, "_sortOrder"):
             return self._sortOrder
-        self._sortOrder = (SortOrder.Expression, self.__str__())
+        object.__setattr__(self, "_isConstant", (SortOrder.Expression, self.__str__()))
         return self._sortOrder
 
     def __str__(self):

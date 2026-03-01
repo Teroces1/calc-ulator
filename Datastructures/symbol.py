@@ -2,7 +2,9 @@ from Datastructures.forms import SortOrder
 
 constantSymbols = {
     "pi": 3.14159265358979,
-    "e": 2.718281828459
+    "e": 2.718281828459,
+    "oily macaroni": 0.57721566490153286,
+    "\\gamma": 0.57721566490153286
 }
 
 
